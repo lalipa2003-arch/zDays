@@ -17,7 +17,7 @@ What to include in a report
 
 Verification and timeline
 
-- We aim to acknowledge high-severity reports within 72 hours and work with reporters to reproduce and mitigate. For public disclosure we prefer to coordinate timing with the reporter.
+- We aim to acknowledge high-severity reports, and work with reporters to reproduce and mitigate. For public disclosure we prefer to coordinate timing with the reporter.
 
 Warnings and disclaimers
 
