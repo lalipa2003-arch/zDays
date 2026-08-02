@@ -1,31 +1,114 @@
-zDays is experimental cryptographic software. The custom block cipher and other components have not undergone formal academic cryptanalysis. DO NOT use zDays to protect high-value assets until an independent security review and audit have been completed.
+# Security Policy
 
-Responsible disclosure
+## Experimental Software Notice
 
-If you believe you've found a security vulnerability, please open a GitHub issue titled: "[security] <short summary>" and add the `security` label if possible. In the issue body, state whether you would like the report handled privately by adding the line: "Please handle privately". Do NOT paste exploitable proof-of-concept code or sensitive attachments into a public issue.
+**zDays is experimental cryptographic software.**
 
-Private disclosures and contact options
+The project combines well-established cryptographic primitives (such as Argon2id, HKDF-SHA256, and HMAC-SHA256) with an experimental custom block cipher implemented in WebAssembly.
 
-Option A — Private GitHub advisory (recommended):
-- If you request private handling in the issue, maintainers will create a private GitHub Security Advisory and invite you to it so you can share sensitive PoC or exploit data privately.
+The custom cipher has **not** undergone formal academic cryptanalysis or an independent professional security audit.
 
-Option B — Email (alternative):
-- If you prefer to send details by email, you can use: donaldduckemail@tutamail.com
-- If you email PoC files, please encrypt them (e.g., with GPG) or mark them as sensitive. Avoid sending unencrypted secrets.
+**Do not rely on zDays to protect high-value, safety-critical, or mission-critical information until the implementation and custom cryptographic components have received substantial independent review.**
 
-What to include in a report
+---
 
-- Affected release(s)/tag(s)
-- High-level description of the issue
-- Steps to reproduce (minimal PoC if possible)
-- Test vectors and input files used
-- Platform and environment details (OS, browser, wasm engine, versions)
+# Reporting a Security Vulnerability
 
-Acknowledgement and timeline
+If you believe you have discovered a security vulnerability, please report it responsibly.
 
-We aim to acknowledge high-severity reports promptly and work with reporters to reproduce and mitigate. We will respond to new reports with an acknowledgement within 72 hours and provide progress updates.
+## Preferred Method — Private GitHub Security Advisory
 
-Warnings and disclaimers
+If possible, request private handling. Sensitive information, exploit details, or proof-of-concept code should not be disclosed publicly until the issue has been investigated.
 
-- The repository intentionally ships an experimental cipher and must be treated as research software.
-- No license is included in this repository by author request; this affects reuse and redistribution — see README for details.
+---
+
+## Alternative — GitHub Issue
+
+If private reporting is unavailable, open a GitHub issue titled:
+
+```text
+[security] Short summary
+```
+
+If you would like the report handled privately, include the following line in the issue:
+
+```text
+Please handle privately.
+```
+
+Please **do not** include exploit code, secrets, passwords, or sensitive attachments in a public issue.
+
+---
+
+## Email
+
+Security reports may also be sent to:
+
+```text
+donaldduckemail@tutamail.com
+```
+
+If your report contains proof-of-concept files or confidential information, consider encrypting the email with GPG if a public key is available.
+
+---
+
+# What to Include
+
+Please include as much information as possible:
+
+* Affected version(s)
+* Operating system
+* Browser and version
+* Steps to reproduce
+* Expected behavior
+* Actual behavior
+* Minimal proof of concept (if safe)
+* Test vectors or sample files (if applicable)
+* Any relevant logs or screenshots
+
+---
+
+# Scope
+
+Security reports may include, but are not limited to:
+
+* Cryptographic weaknesses
+* Implementation bugs
+* Memory safety issues
+* Authentication or integrity failures
+* Side-channel concerns
+* Container (.ydz) format issues
+* Documentation errors affecting security
+
+---
+
+# Disclosure Process
+
+After receiving a report, we aim to:
+
+* Acknowledge receipt within **72 hours**.
+* Reproduce and validate the issue.
+* Discuss mitigation or fixes with the reporter.
+* Credit the reporter in the release notes if they wish to be acknowledged.
+
+---
+
+# Security Philosophy
+
+zDays is developed with an emphasis on:
+
+* Offline-first operation
+* Open-source transparency
+* Reproducible implementations
+* Defense in depth
+* Continuous improvement through public review
+
+Independent analysis, cryptanalysis, testing, and responsible security research are welcomed.
+
+---
+
+# Disclaimer
+
+This project is provided **"as is"**, without any warranty of any kind.
+
+No security system can guarantee absolute protection. Users are responsible for determining whether zDays is appropriate for their intended use.
