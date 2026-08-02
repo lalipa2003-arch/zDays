@@ -5,11 +5,6 @@ All notable changes to this project will be documented in this file.
 Format: https://keepachangelog.com/en/1.0.0/
 This project uses Semantic Versioning where practical.
 
-## [Unreleased]
-
-### Added
-- (placeholder) Add user-facing docs and sample build instructions.
-- (placeholder) Add verified checksums for release assets.
 
 ## [v1.0.3] - 2026-08-02
 ### Added
