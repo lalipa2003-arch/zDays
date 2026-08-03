@@ -16,33 +16,11 @@ The custom cipher has **not** undergone formal academic cryptanalysis or an inde
 
 If you believe you have discovered a security vulnerability, please report it responsibly.
 
-## Preferred Method — Private GitHub Security Advisory
-
-If possible, request private handling. Sensitive information, exploit details, or proof-of-concept code should not be disclosed publicly until the issue has been investigated.
-
----
-
-## Alternative — GitHub Issue
-
-If private reporting is unavailable, open a GitHub issue titled:
-
-```text
-[security] Short summary
-```
-
-If you would like the report handled privately, include the following line in the issue:
-
-```text
-Please handle privately.
-```
-
-Please **do not** include exploit code, secrets, passwords, or sensitive attachments in a public issue.
-
 ---
 
 ## Email
 
-Security reports may also be sent to:
+Security reports may be sent to:
 
 ```text
 donaldduckemail@tutamail.com
