@@ -1,3 +1,142 @@
 # zDays
-Open-source file encryption with modern cryptography, with still being local.
-Here is a comprehensive summary of everything that is currently implemented and functional within the our newest release, v1.0.2: 1. Cryptographic Engine (WebAssembly + Argon2id) Custom ARX Block Cipher: A proprietary WebAssembly (WASM) block cipher written in AssemblyScript (assembly/index.ts). The cipher uses ARX (Add-Rotate-XOR) operations and operates in CBC mode. The compiled WASM binary is securely loaded inline via base64 encoding (wasm-loader.ts). Memory-Hard Key Derivation (KDF): Uses hash-wasm to implement the Argon2id key derivation function. It is currently configured to enforce a 256MB RAM memory-hard constraint with 6 iterations to heavily resist GPU/ASIC brute-forcing. Dynamic Cipher Rounds: Supports scalable engine modes (lite, standard, experimental) mapped from a JSON configuration, determining how many transformation rounds the WASM cipher performs. Custom Container Format (.ydz): The ydz-format.ts pipeline packages the ciphertext alongside a verified metadata header (original filename, MIME type, timestamp, KDF algorithm, and engine mode). 2. Core Modules (Pages) Encryption Module (EncryptPage.tsx): Drag-and-drop file interface for selecting any local file. Master password input with real-time key entropy/strength scoring. Mode selector for ARX cipher rounds (Lite, Standard, Experimental). One-click encryption that derives the Argon2id key, encrypts via the WASM engine, packages the .ydz container, and automatically triggers a local download. Decryption Module (DecryptPage.tsx): Validates and parses .ydz files. Authenticates the container with the master password. Displays a "Verified Container Header" upon successful decryption, exposing the original filename, cipher mode, and timestamp. Safely extracts the decrypted data back into the original file format for download. Secure Local Vault (VaultPage.tsx): An IndexedDB-backed local repository for organizing encrypted containers (src/lib/db.ts). Users can import .ydz files into the vault, which persists across browser reloads entirely client-side. Displays a clean data table showing filenames, file sizes, and import dates. Supports one-click direct downloading or permanent deletion from the vault. Cryptographic Key Generator (KeygenPage.tsx): An unbiased, high-entropy password generator utilizing crypto.getRandomValues() and rejection sampling to eliminate modulo bias. Highly configurable (length slider from 12 to 128 characters, toggles for lowercase, uppercase, numbers, and symbols). Real-time Shannon Entropy calculator, classifying keys into Weak, Strong, or Military-Grade based on bits of entropy. 3. Frontend Architecture Framework Stack: Built with React 19, Vite, and TypeScript. Styling & UI: Styled comprehensively using Tailwind CSS v4, featuring a premium dark-mode aesthetic (cyan/blue gradient accents, slate panels). Icons: Integrates lucide-react for consistent iconography. Client-Side Only: The entire application operates completely offline within the browser sandbox. No server-side API calls or external data transfers are occurring during encryption, decryption, or vault storage.
+
+**zDays** is an experimental, open-source, offline file encryption application built with **React**, **TypeScript**, **AssemblyScript**, and **WebAssembly**.
+
+It performs all cryptographic operations entirely on your device—no accounts, no cloud storage, and no server-side encryption. Files never leave your browser during encryption or decryption.
+🌐 **Website:** https://zdays.netlify.app
+> **⚠️ Experimental Software**
+>
+> zDays includes an experimental custom block cipher that has **not** undergone formal academic cryptanalysis or an independent professional security audit. While the project uses established cryptographic primitives such as Argon2id, HKDF-SHA256, and HMAC-SHA256, the custom cipher should be considered experimental. Do not rely on zDays to protect high-value or safety-critical information until it has received substantial independent review.
+
+---
+
+## Features
+
+* 🔒 Offline file encryption and decryption
+* ⚡ High-performance WebAssembly cryptographic engine
+* 🔑 Memory-hard Argon2id password key derivation
+* 🧩 HKDF-SHA256 domain-separated key expansion
+* 🛡️ HMAC-SHA256 authenticated container format
+* 📦 Custom `.ydz` encrypted file format
+* 🗂️ Encrypted metadata protection
+* 💾 Local encrypted vault using IndexedDB
+* 🎲 High-entropy password generator
+* 📊 Real-time password entropy estimation
+* 📈 Encryption and decryption progress reporting
+* 🧱 Chunked processing for large files
+* 🌐 Runs entirely in the browser
+* 🚫 No external API calls during encryption or decryption
+
+---
+
+## Cryptographic Architecture
+
+zDays combines established cryptographic building blocks with an experimental custom encryption engine.
+
+### Key Derivation
+
+Passwords are processed using **Argon2id**, a memory-hard password hashing algorithm designed to resist brute-force attacks.
+
+A unique random salt is generated for every encrypted container.
+
+### Key Expansion
+
+The derived master key is expanded using **HKDF-SHA256** into independent keys for:
+
+* Encryption
+* Authentication
+* Metadata protection
+
+This prevents one component from reusing key material intended for another.
+
+### Encryption Engine
+
+The custom encryption engine is implemented in **AssemblyScript** and compiled to **WebAssembly**.
+
+Current versions use:
+
+* 128-bit block size
+* ARX (Addition-Rotation-XOR) diffusion
+* Affine-equivalent key-dependent substitution layer
+* Byte permutation layer
+* CBC mode
+* Chunked processing for large files
+
+### Authentication
+
+Encrypted containers are authenticated using **HMAC-SHA256** before any decrypted data is released.
+
+Authentication covers the encrypted metadata, payload, and container structure to detect tampering.
+
+---
+
+## Application Features
+
+### Encryption
+
+* Drag-and-drop file encryption
+* Password strength analysis
+* Configurable encryption modes
+* Automatic `.ydz` container generation
+
+### Decryption
+
+* Container validation
+* Metadata verification
+* Secure file recovery
+* Authentication before decryption
+
+### Local Vault
+
+* IndexedDB-backed encrypted storage
+* Import existing `.ydz` files
+* Persistent local organization
+* Download or permanently delete containers
+
+### Password Generator
+
+* Uses `crypto.getRandomValues()`
+* Configurable character sets
+* Adjustable password length
+* Real-time entropy estimation
+
+---
+
+## Technology Stack
+
+* React 19
+* TypeScript
+* AssemblyScript
+* WebAssembly
+* Vite
+* Tailwind CSS v4
+* IndexedDB
+* Web Crypto API
+
+---
+
+## Privacy
+
+All cryptographic operations occur locally inside your browser.
+
+zDays does **not** upload files, passwords, or encryption keys to external servers during normal operation.
+
+---
+
+## Documentation
+
+Additional project documentation is available in this repository:
+
+* `SECURITY.md`
+* `SPEC.md`
+* Release Notes
+
+---
+
+---
+
+## Contributing
+
+Bug reports, security reviews, implementation feedback, performance improvements, and documentation contributions are welcome.
+
+If you discover a potential security issue, please follow the reporting process described in `SECURITY.md`.
