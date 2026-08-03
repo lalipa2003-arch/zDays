@@ -1,3 +1,4 @@
+<img width="2360" height="1371" alt="IMG_0646" src="https://github.com/user-attachments/assets/cab15306-8811-431d-b58a-95d1db42b3e9" />
 # zDays
 
 **zDays** is an experimental, open-source, offline file encryption application built with **React**, **TypeScript**, **AssemblyScript**, and **WebAssembly**.
