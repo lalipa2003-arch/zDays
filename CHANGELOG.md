@@ -5,11 +5,19 @@ All notable changes to this project will be documented in this file.
 Format: https://keepachangelog.com/en/1.0.0/
 This project uses Semantic Versioning where practical.
 
+## [v1.0.7] - 2026-08-04
+### Added
+- Published a consumable library package: `@idiotbready/zdays` available from the project's custom npm registry.
+- Library usage and tutorial added: APIs include `generateRandomKey`, `generateRandomMasterPassword`, `encryptFile`, `decryptFile`, and `YdzMetadata` types.
+- High-level examples and usage patterns for encrypting/decrypting `Uint8Array` payloads, including recommended engine modes (`lite`, `standard`, `experimental`) and how to map modes to rounds.
+- Installation instructions referencing the custom registry and example install command.
+
+### Notes
+- Release published: https://github.com/lalipa2003-arch/zDays/releases/tag/v1.0.7
 
 ## [v1.0.4] - 2026-08-02
 ### Added
-- WASM Memory Ceiling & Chunked Processing: restructured `encryptBlockCipher` and `decryptBlockCipher` in `/src/engine/zdays-engine.ts` to process ciphertext in bounded 1MB chunks (`CHUNK_SIZE`), preventing WASM linear memory from needing to scale to the full file size.
-- Wired `onProgress` callbacks into the chunk loops for both encryption and decryption so progress is reported accurately.
+- WASM Memory Ceiling & Chunked Processing: restructured `encryptBlockCipher` and `decryptBlockCipher` in `/src/engine/zdays-engine.ts` to process ciphertext in bounded 1MB chunks (`CHUNK_SIZE`), preventing WASM linear memory from growing to the full file size. Wired `onProgress` callbacks into the chunk loops for both encryption and decryption so progress is reported accurately.
 
 ### Fixed
 - Diffusion Interoperability Fix: updated `diffuse` and `inverseDiffuse` in both `/assembly/index.ts` (WASM) and `/src/engine/diffusion.ts` (TypeScript fallback) to execute a single quarter-round without the extra state rotation, aligning bit-for-bit with published reference ports (Python, Java, C#, Go, Swift, Ada/SPARK).
