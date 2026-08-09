@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 Format: https://keepachangelog.com/en/1.0.0/
 This project uses Semantic Versioning where practical.
 
+## [v1.10] - 2026-08-08
+### Fixed
+- Diffusion early-round weakness: updated the diffusion implementation so a single `diffuse` call performs four quarter-round operations (instead of one), bringing the single-call avalanche from ~26 bits to ~64 bits and eliminating the weak early-round behaviour observed in prior builds.
+- Avalanche testing notes: after the change a single diffuse produces ~64 bits changed out of 128; 4+ diffuses remain stable at ~64 bits.
+
+### Notes
+- Release tag: 26.H2
+- Release page: https://github.com/lalipa2003-arch/zDays/releases/tag/26.H2
+- Release asset: zdays-engine.1.01.0zip
+
 ## [v1.0.7] - 2026-08-04
 ### Added
 - Published a consumable library package: `@idiotbready/zdays` available from the project's custom npm registry.
