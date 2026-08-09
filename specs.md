@@ -1,4 +1,4 @@
-# zDays Cryptographic Engine Specification (Draft)
+# zDays Cryptographic Engine Specification 
 
 ## Overview
 
