@@ -1,25 +1,35 @@
-# zDays Cryptographic Engine Specification 
+# zDays Cryptographic Engine Specification (Draft)
+
+## Latest release: v1.10 (tag: 26.H2, 2026-08-08)
+
+Highlights
+
+- Diffusion early-round fix (v1.10): the diffusion primitive was strengthened so a single `diffuse()` call now performs four quarter-round operations (previously it ran only one). This raises the single-call avalanche from ~26 bits to ~64 bits and removes the soft early-round behaviour.
+- Library release (v1.0.7): a consumable package `@idiotbready/zdays` was published; see release v1.0.7 for installation and API examples.
+- Chunked WASM processing (v1.0.4+): encrypt/decrypt now process payloads in bounded 1MB chunks (`CHUNK_SIZE`) so WebAssembly linear memory does not need to grow to the full file size. `onProgress` callbacks are wired into the chunk loops.
+- WASM bounds & buffer guards (v1.0.4): temporary permutation buffers increased (256 → 4096 bytes) and explicit bounds guards added to avoid memory corruption.
+- Constant-time padding & memory hygiene (v1.0.4): PKCS#7 padding validation was rewritten into a strictly bitwise constant-time check and `zeroMemory` was extended to do multi-pass wiping to resist compiler optimizations.
+
+For full release notes, see: https://github.com/lalipa2003-arch/zDays/releases
+
+---
 
 ## Overview
 
-zDays is an experimental, open-source file encryption engine designed to operate entirely offline. The application runs inside the browser and performs all cryptographic operations locally without transmitting user data to external servers.
+zDays is an experimental, open-source file encryption engine designed to run entirely offline in the browser. It combines established primitives (Argon2id, HKDF-SHA256, HMAC-SHA256) with a custom ARX-based block cipher implemented in AssemblyScript/WebAssembly.
 
-The engine combines established cryptographic primitives such as Argon2id, HKDF-SHA256, and HMAC-SHA256 with a custom ARX-based block cipher implemented in WebAssembly.
+This document records the engine design and recent implementation changes; treat the cipher as experimental and invite cryptanalysis.
 
 ---
 
 # Design Goals
 
-The primary goals of zDays are:
-
 * Offline-only encryption
 * Strong password-based key derivation
 * Authenticated encrypted containers
 * Modular cryptographic architecture
-* WebAssembly performance
-* Open implementation suitable for public review
-
-The project is experimental and intended for analysis and improvement by the community.
+* WebAssembly performance and safety (bounded memory usage)
+* Open implementation for public review
 
 ---
 
@@ -41,19 +51,14 @@ HKDF-SHA256
  └── Metadata Key
 ```
 
-The master key is never used directly.
-
-Each derived key has a single purpose through domain-separated HKDF expansion.
+Master key material is domain-separated via HKDF and never reused directly.
 
 ---
 
 # Key Derivation
 
-Passwords are processed using Argon2id.
-
-The configuration is designed to be memory-hard, increasing the computational cost of brute-force attacks.
-
-A unique random salt is generated for every encrypted container.
+- Argon2id is used for password stretching with a per-container random salt and memory-hard parameters.
+- Parameters are configurable in the engine options (trade-off: memory/time vs. attacker cost).
 
 ---
 
@@ -61,19 +66,19 @@ A unique random salt is generated for every encrypted container.
 
 Each file is encrypted using the following sequence:
 
-1. Generate random salt
-2. Derive Master Key using Argon2id
-3. Expand subkeys using HKDF-SHA256
-4. Encrypt metadata
-5. Encrypt payload
-6. Authenticate container
-7. Produce a `.ydz` container
+1. Generate random salt and IV(s)
+2. Derive master key with Argon2id
+3. Expand subkeys with HKDF-SHA256 (Encryption, Auth, Metadata)
+4. Encrypt metadata (separately)
+5. Encrypt payload using chunked processing (1MB chunks) and the custom block cipher
+6. Compute HMAC-SHA256 authentication values
+7. Emit versioned `.ydz` container
 
 ---
 
 # Block Cipher
 
-Current Version: v1.0.3
+Current Version: v1.10
 
 ## Block Size
 
@@ -81,7 +86,7 @@ Current Version: v1.0.3
 
 ## Default Rounds
 
-20
+20 (configurable per engine mode)
 
 Each round performs:
 
@@ -93,138 +98,88 @@ Each round performs:
 
 ---
 
-# Diffusion Layer
+# Diffusion Layer (v1.10 changes)
 
-The diffusion stage operates on four 32-bit words.
-
-It uses ChaCha-inspired Add-Rotate-XOR (ARX) operations to rapidly spread changes throughout the internal state.
-
-The layer provides strong practical diffusion while remaining computationally efficient.
+- The diffusion stage operates on four 32-bit words and uses ARX (Add-Rotate-XOR) operations.
+- In v1.10 the `diffuse()` primitive was changed so a single call runs four quarter-rounds (previously a single quarter-round). This change produces a strong avalanche from the first round (single-call avalanche ~64/128 bits) and mitigates early-round differential weaknesses.
+- Reference ports (WASM/TS/Python/Go/Java/C#/Swift/Ada) should match bit-for-bit after this change.
 
 ---
 
 # Substitution Layer
 
-Beginning with version 1.0.3, zDays no longer generates S-boxes using Fisher-Yates shuffling.
-
-Instead, every encryption session derives a unique S-box using affine equivalence:
+- Per-session S-boxes are derived using affine equivalence:
 
 ```
-S(x) = M₂ · Core(M₁ · x ⊕ c₁) ⊕ c₂
+S(x) = M2 · Core(M1 · x ⊕ c1) ⊕ c2
 ```
 
-where:
-
-* Core is a fixed, independently chosen 8-bit permutation with strong cryptographic properties.
-* M₁ and M₂ are key-dependent invertible 8×8 matrices over GF(2).
-* c₁ and c₂ are key-dependent affine constants.
-
-This construction preserves important properties of the Core S-box while producing a unique substitution layer for each encryption key.
+- `Core` is a fixed 8-bit permutation chosen for good cryptographic properties. M1, M2, c1, c2 are key-dependent.
 
 ---
 
 # Permutation Layer
 
-Bytes are rearranged using a coprime stride permutation.
-
-For a 16-byte block, the default mapping is:
+- Bytes are rearranged using a coprime stride permutation. Default mapping for 16-byte blocks:
 
 ```
-index = (index × 5) mod 16
+index = (index * 5) mod 16
 ```
-
-This distributes byte positions between rounds.
 
 ---
 
-# Mode of Operation
+# Mode of Operation & Chunking
 
-Cipher Block Chaining (CBC)
-
-Every encryption generates a fresh 128-bit IV using:
-
-```
-crypto.getRandomValues()
-```
-
-IV reuse is intentionally avoided.
+- CBC mode is used with a fresh 128-bit IV per container (via `crypto.getRandomValues()`).
+- Large payloads are processed in bounded chunks (CHUNK_SIZE = 1MB by default) to avoid growing WASM linear memory. Chunks are encrypted in sequence and progress callbacks are emitted.
 
 ---
 
 # Metadata Protection
 
-Metadata is encrypted independently from file contents.
-
-Metadata includes information such as:
-
-* Original filename
-* MIME type
-* Timestamp
-* Engine version
-* Encryption parameters
-
-A dedicated Metadata Key is derived through HKDF domain separation.
+- Metadata (filename, MIME type, timestamps, engine version, parameters) is encrypted with a dedicated Metadata Key derived from HKDF.
 
 ---
 
 # Authentication
 
-zDays authenticates encrypted data before decryption.
-
-The container includes multiple HMAC-SHA256 authentication values covering:
-
-* Header
-* Metadata
-* Payload
-
-Verification occurs before any plaintext is released.
-
-Constant-time comparison is used to reduce timing side-channel leakage.
+- Containers include HMAC-SHA256 values covering: header, metadata, and payload.
+- Authentication is verified with constant-time comparison before any plaintext is released.
 
 ---
 
 # File Format
 
-Encrypted files use the `.ydz` container format.
+- `.ydz` container (versioned) stores: header, salt, IV(s), encrypted metadata, encrypted payload (chunked), authentication values.
 
-Each container stores:
+---
 
-* Header
-* Salt
-* IV(s)
-* Encrypted metadata
-* Encrypted payload
-* Authentication values
+# Implementation Safety Notes
 
-The format is versioned to allow future compatibility.
+- WASM buffers: temporary permutation buffers were increased from 256 to 4096 bytes and explicit bounds guards added to avoid memory corruption with larger block sizes.
+- Padding: PKCS#7 padding checks are implemented in strictly bitwise constant-time form to avoid timing leakage.
+- Memory hygiene: sensitive buffers are zeroed using a multi-pass wipe to resist compiler optimization elision.
+
+---
+
+# Releases & Package
+
+- v1.10 (tag: 26.H2) — diffusion early-round fix (2026-08-08)
+  - https://github.com/lalipa2003-arch/zDays/releases/tag/26.H2
+- v1.0.7 — library package `@idiotbready/zdays` published (2026-08-04)
+  - https://github.com/lalipa2003-arch/zDays/releases/tag/v1.0.7
+- v1.0.4 — chunked processing, padding, WASM guards, zeroisation (2026-08-02)
+  - https://github.com/lalipa2003-arch/zDays/releases/tag/v1.0.4
 
 ---
 
 # Security Notes
 
-zDays intentionally builds upon widely studied components:
-
-* Argon2id
-* HKDF-SHA256
-* HMAC-SHA256
-
-The custom block cipher is experimental.
-
-While the implementation follows modern engineering practices, the cipher has not undergone formal academic cryptanalysis or received a security proof.
-
-Users should treat the cipher as an experimental design and are encouraged to inspect, analyze, and review the implementation.
+- The custom block cipher is experimental and has not received formal academic cryptanalysis. Users should not use zDays for high-value assets until independent review is completed.
+- Reports can be made following the repo SECURITY.md — maintainers can accept private disclosures via GitHub Security Advisories or the contact provided in SECURITY.md.
 
 ---
 
 # Project Philosophy
 
-zDays is an open cryptographic project.
-
-Its goals are:
-
-* transparency,
-* reproducibility,
-* experimentation,
-* continuous improvement through public review.
-
-Feedback, analysis, benchmarks, and cryptanalytic research are welcomed.
+zDays is an open cryptographic project aiming for transparency, reproducibility, and community-driven improvement. Feedback, benchmarks, and cryptanalysis are welcomed.
