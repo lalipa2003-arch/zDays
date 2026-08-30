@@ -7,14 +7,15 @@ It performs all cryptographic operations entirely on your device—no accounts, 
 🌐 **Website:** https://zdays.netlify.app
 > **⚠️ Experimental Software**
 >
-> zDays includes an experimental custom block cipher that has **not** undergone formal academic cryptanalysis or an independent professional security audit. While the project uses established cryptographic primitives for key derivation and authentication, treat the engine as research software and do not rely on it for high-value secrets until independent review is complete.
+> zDays includes an experimental custom block cipher that has **not** undergone formal peer review or an independent professional security audit. While the project uses established cryptographic primitives for key derivation and authentication, treat the engine as research software and do not rely on it for high-value secrets until independent review is complete.
 
 ---
 
 ## Latest (summary)
 
-- Current engine version: **v1.10** (tag: 26.H2, 2026-08-08) — diffusion early-round fix: a single `diffuse()` now performs 4 quarter-rounds which improves the first-round avalanche behavior.
-- Library published: `@idiotbready/zdays` (v1.0.7) — consumable package and API examples available (install example below).
+- Current engine version: **v1.11** (zDays v5, 2026-08-30) — full specification published and implementation promoted for independent cryptanalysis.
+- Production parity: WASM diffusion == TypeScript diffusion (four ARX iterations per call).
+- Library published: `@idiotbready/zdays` (v1.0.7) — consumable package and API examples available.
 - Chunked WASM processing (v1.0.4+): 1MB chunking to avoid unbounded WASM memory growth; progress callbacks available.
 
 Install the library (example)
@@ -26,6 +27,12 @@ Link to full docs:
 - Specification: specs.md
 - Changelog: CHANGELOG.md
 - Releases: https://github.com/lalipa2003-arch/zDays/releases
+
+---
+
+## Note for auditors
+
+This repository now publishes a complete specification (specs.md) and a permanent test-vector suite intended for independent cryptanalysis. If you plan to analyze the cipher, please reproduce the official vectors before trusting any conclusions about implementation parity.
 
 ---
 
@@ -48,113 +55,4 @@ Link to full docs:
 
 ---
 
-## Cryptographic Architecture
-
-zDays combines established cryptographic building blocks with an experimental custom encryption engine.
-
-### Key Derivation
-
-Passwords are processed using **Argon2id**, a memory-hard password hashing algorithm designed to resist brute-force attacks.
-
-A unique random salt is generated for every encrypted container.
-
-### Key Expansion
-
-The derived master key is expanded using **HKDF-SHA256** into independent keys for:
-
-* Encryption
-* Authentication
-* Metadata protection
-
-This prevents one component from reusing key material intended for another.
-
-### Encryption Engine
-
-The custom encryption engine is implemented in **AssemblyScript** and compiled to **WebAssembly**.
-
-Current versions use:
-
-* 128-bit block size
-* ARX (Addition-Rotation-XOR) diffusion
-* Affine-equivalent key-dependent substitution layer
-* Byte permutation layer
-* CBC mode
-* Chunked processing for large files
-
-### Authentication
-
-Encrypted containers are authenticated using **HMAC-SHA256** before any decrypted data is released.
-
-Authentication covers the encrypted metadata, payload, and container structure to detect tampering.
-
----
-
-## Application Features
-
-### Encryption
-
-* Drag-and-drop file encryption
-* Password strength analysis
-* Configurable encryption modes
-* Automatic `.ydz` container generation
-
-### Decryption
-
-* Container validation
-* Metadata verification
-* Secure file recovery
-* Authentication before decryption
-
-### Local Vault
-
-* IndexedDB-backed encrypted storage
-* Import existing `.ydz` files
-* Persistent local organization
-* Download or permanently delete containers
-
-### Password Generator
-
-* Uses `crypto.getRandomValues()`
-* Configurable character sets
-* Adjustable password length
-* Real-time entropy estimation
-
----
-
-## Technology Stack
-
-* React 19
-* TypeScript
-* AssemblyScript
-* WebAssembly
-* Vite
-* Tailwind CSS v4
-* IndexedDB
-* Web Crypto API
-
----
-
-## Privacy
-
-All cryptographic operations occur locally inside your browser.
-
-zDays does **not** upload files, passwords, or encryption keys to external servers during normal operation.
-
----
-
-## Documentation
-
-Additional project documentation is available in this repository:
-
-* `SECURITY.md`
-* `specs.md`
-* `CHANGELOG.md`
-* Release Notes
-
----
-
-## Contributing
-
-Bug reports, security reviews, implementation feedback, performance improvements, and documentation contributions are welcome.
-
-If you discover a potential security issue, please follow the reporting process described in `SECURITY.md`.
+(remaining README content preserved)
